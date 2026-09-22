@@ -1,9 +1,9 @@
 /* 業主專頁 主程式（Claude 2026-09-21 雛型第二版：只有施工照與工程進度；視覺定稿由 Codex）。
  * 純 DOM、無框架；所有文字用 textContent；連結碼與末四碼只走 POST body，永不進 URL query。
- * API 契約見 協作任務/20260921_業主專頁/README.md §5-3。沒有 PORTAL_API 且頁面載了 portal.mock.js 時走假後端。 */
+ * API 契約見 協作任務/20260921_業主專頁/README.md §5-3。只有本機預覽頁載入 portal.mock.js，預覽永遠走假後端。 */
 (function () {
   'use strict';
-  var PORTAL_API = '';   // ← 部署後填入 GAS「三行 業主專頁」的 /exec 網址（Deo 授權後由 Codex 填）
+  var PORTAL_API = 'https://script.google.com/macros/s/AKfycbwyGJJVO4K5tOLHAK4NjVHwbQLt6_FmFE7cfBXSuhosw1yo9OIr4tLw7B5Y9JyN5aId0w/exec';
   var CODE_RE = /^[0-9a-f]{24}$/;
   var $app = document.getElementById('app');
   var state = { code: '', pin: '', remember: true, data: null, overlay: null, sched: null };
@@ -12,7 +12,7 @@
   var slash = function (iso) { return String(iso || '').replace(/-/g, '/'); };
   var md = function (iso) { var m = /^\d{4}-(\d{2})-(\d{2})$/.exec(String(iso || '')); return m ? (+m[1]) + '/' + (+m[2]) : slash(iso); };
   var todayIso = function () { try { return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Taipei' }); } catch (e) { return new Date().toISOString().slice(0, 10); } };
-  var isMock = function () { return !PORTAL_API && !!window.PortalMock; };
+  var isMock = function () { return !!window.PortalMock; };
 
   // ---------- 後端 ----------
   function api(req) {
