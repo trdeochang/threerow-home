@@ -46,10 +46,11 @@
     return { root: root, scrollToday: function () { scrollToday(tl, g, today, allDates, true); }, dispose: function () { if (ro) ro.disconnect(); } };
   }
 
-  /* 欄寬：桌機一個月塞得下就平分；塞不下就 28px 一天讓它橫向捲 */
+  /* 有施工照時至少 45px／日，容納 44px 按鈕與格線、不重疊；無照片維持 26px。 */
   function fit(tl, g, nDays) {
     var label = parseFloat(getComputedStyle(g).getPropertyValue('--sc-label')) || 120;
-    var avail = tl.clientWidth - label - 2, day = Math.max(26, Math.floor(avail / 31));
+    var minDay = g.querySelector('button.sc-dot') ? 45 : 26;
+    var avail = tl.clientWidth - label - 2, day = Math.max(minDay, Math.floor(avail / 31));
     g.style.setProperty('--sc-day', day + 'px');
     g.style.gridTemplateColumns = 'var(--sc-label) repeat(' + nDays + ', var(--sc-day))';
   }
