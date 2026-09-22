@@ -31,6 +31,17 @@
   function savePin() { try { if (state.remember) localStorage.setItem(storeKey(), state.pin); else localStorage.removeItem(storeKey()); } catch (e) {} }
   function clearPin() { try { localStorage.removeItem(storeKey()); } catch (e) {} }
 
+  // 跳至主內容不能改寫 hash；hash 是業主的專屬連結碼。
+  var skip = document.querySelector('.pg-skip');
+  if (skip) skip.addEventListener('click', function (e) {
+    e.preventDefault();
+    var main = $app.querySelector('main');
+    if (!main) return;
+    main.tabIndex = -1;
+    main.focus({ preventScroll: true });
+    main.scrollIntoView({ behavior: 'auto', block: 'start' });
+  });
+
   // ---------- 進入流程 ----------
   function boot() {
     closeOverlay(true);
@@ -76,13 +87,14 @@
     var g = gateShell('請輸入手機末四碼', '為了保護你的資料，請輸入你留給三行的手機號碼最後四碼。');
     var form = node('form'); form.noValidate = true;
     var input = node('input', 'pg-pin'); input.type = 'text'; input.inputMode = 'numeric'; input.pattern = '[0-9]*'; input.maxLength = 4; input.autocomplete = 'one-time-code'; input.placeholder = '····'; input.setAttribute('aria-label', '手機末四碼'); input.required = true;
-    var errEl = node('p', 'pg-err', err || ''); if (!err) errEl.hidden = true;
+    var errEl = node('p', 'pg-err', err || ''); errEl.id = 'pg-pin-error'; errEl.setAttribute('aria-live', 'polite'); errEl.setAttribute('aria-atomic', 'true'); if (!err) errEl.hidden = true;
+    input.setAttribute('aria-describedby', errEl.id); input.setAttribute('aria-invalid', err ? 'true' : 'false');
     var rem = node('label', 'pg-remember'); var cb = node('input'); cb.type = 'checkbox'; cb.checked = state.remember; cb.addEventListener('change', function () { state.remember = cb.checked; }); rem.append(cb, '記住這台裝置，下次不用再輸入');
     var submit = btn('進入專頁', 'primary'); submit.type = 'submit';
     form.append(input, errEl, rem, submit);
     form.addEventListener('submit', function (e) {
       e.preventDefault(); var v = String(input.value || '').replace(/\D/g, '');
-      if (v.length !== 4) { errEl.textContent = '請輸入 4 位數字'; errEl.hidden = false; input.focus(); return; }
+      if (v.length !== 4) { errEl.textContent = '請輸入 4 位數字'; errEl.hidden = false; input.setAttribute('aria-invalid', 'true'); input.focus(); return; }
       state.pin = v; submit.disabled = true; load();
     });
     g.card.append(form, node('p', 'pg-help', '不確定留的是哪個號碼？請聯絡你的設計師。'));
