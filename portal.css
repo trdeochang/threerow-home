@@ -7,7 +7,7 @@
   --sc-sat:#e3ebf1;--sc-sun:#f3e7dd;--sc-hol:#f2d9d6;--sc-hol-ink:#8a3a3f;--sc-work:#cfe0d3;--sc-work-ink:#233a2d;--sc-review:#f2e6b4;--sc-grid:#cfd2cc;--sc-grid-soft:#e6e8e3;--sc-today:#455f68;
   color-scheme:light dark}
 @media (prefers-color-scheme:dark){:root{
-  --paper:#20282b;--soft:#2b3539;--hair:#3d484d;--ink:#e5e7e2;--muted:#a3adb0;--accent:#8fa4ac;--accent-text:#a9bcc4;--accent-soft:#2f3f45;--dark:#5f7c86;--on-dark:#fff;
+  --paper:#20282b;--soft:#2b3539;--hair:#3d484d;--ink:#e5e7e2;--muted:#a3adb0;--accent:#8fa4ac;--accent-text:#a9bcc4;--accent-soft:#2f3f45;--dark:#586f77;--on-dark:#fff;
   --ok:#8fbb9f;--warn:#d1b07a;--bad:#e0959a;--warn-soft:#3a3428;--bad-soft:#3d2a2c;--ok-soft:#28362d;
   --sc-sat:#2b3a45;--sc-sun:#44372e;--sc-hol:#4a2f31;--sc-hol-ink:#f0b8bb;--sc-work:#38584a;--sc-work-ink:#e8f1ea;--sc-review:#5a5230;--sc-grid:#4a545a;--sc-grid-soft:#343d41;--sc-today:#b4c2aa}}
 *{box-sizing:border-box}
@@ -31,7 +31,7 @@ a{color:var(--accent-text)}
 @media (prefers-color-scheme:dark){.pg-logo-mark,.pg-logo-full{filter:invert(1) brightness(1.15)}}
 .pg-nav{margin-left:auto;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:8px 0}
 .pg-nav::-webkit-scrollbar{display:none}
-.pg-nav a{flex:none;text-decoration:none;color:var(--ink);background:var(--paper);border:1px solid var(--hair);border-radius:999px;padding:6px 14px;font-size:14px;font-weight:500;line-height:1.4;white-space:nowrap}
+.pg-nav a{flex:none;display:inline-flex;align-items:center;min-height:44px;text-decoration:none;color:var(--ink);background:var(--paper);border:1px solid var(--hair);border-radius:999px;padding:6px 14px;font-size:14px;font-weight:500;line-height:1.4;white-space:nowrap}
 .pg-nav a:hover{background:var(--soft)}
 .pg-nav a[aria-current=true]{background:var(--dark);border-color:var(--dark);color:var(--on-dark)}
 
@@ -60,7 +60,7 @@ a{color:var(--accent-text)}
 .pg-btn.primary{background:var(--dark);border-color:var(--dark);color:var(--on-dark)}
 .pg-btn.primary:hover{background:var(--ink);color:var(--paper)}
 .pg-btn:disabled{opacity:.5;cursor:default}
-.pg-btn.small{min-height:36px;padding:6px 12px;font-size:14px}
+.pg-btn.small{min-height:44px;padding:6px 12px;font-size:14px}
 .pg-btn.ghost{border-color:transparent;background:transparent;color:var(--accent-text)}
 
 /* 相簿：依月份分組的密集列表，一行＝一次施工（日期、名稱、張數） */
@@ -80,7 +80,7 @@ a{color:var(--accent-text)}
 .pg-detail-top{position:sticky;top:0;z-index:2;background:var(--paper);border-bottom:1px solid var(--hair)}
 .pg-detail-top .pg-wrap{display:flex;align-items:center;gap:12px;min-height:56px}
 .pg-detail-top h2{margin:0;font-size:17px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pg-detail-top .pg-btn{min-height:40px;padding:6px 12px}
+.pg-detail-top .pg-btn{min-height:44px;padding:6px 12px}
 .pg-detail-body{padding:16px 0 40px}
 .pg-photo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
 .pg-photo{position:relative;aspect-ratio:1;overflow:hidden;background:var(--soft);border:0;padding:0;cursor:pointer;border-radius:2px}
@@ -100,7 +100,7 @@ a{color:var(--accent-text)}
 .pg-lb-btn:hover{background:rgba(255,255,255,.16)}
 .pg-lb-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:1}
 .pg-lb-nav.prev{left:8px}.pg-lb-nav.next{right:8px}
-@media (pointer:coarse){.pg-lb-nav{display:none}}
+@media (pointer:coarse){.pg-lb-nav{top:auto;bottom:max(16px,env(safe-area-inset-bottom));transform:none}}
 
 /* 進度表（唯讀；格線 CSS 取自三行腦 schedule.css，去掉編輯與列印） */
 .pg-sched-sum{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 12px;font-size:14px;color:var(--muted)}
@@ -164,7 +164,7 @@ a{color:var(--accent-text)}
 .pg-gate p{margin:0 0 18px;color:var(--muted);font-size:14px;text-align:center}
 .pg-pin{display:block;width:100%;font-size:32px;letter-spacing:.6em;text-align:center;text-indent:.6em;padding:12px 8px;min-height:64px;border:1px solid var(--hair);border-radius:var(--r-input);background:var(--soft);color:var(--ink);font-variant-numeric:tabular-nums}
 .pg-pin:focus{outline:2px solid var(--accent-text);outline-offset:2px}
-.pg-gate label.pg-remember{display:flex;align-items:center;gap:8px;margin:14px 0 18px;font-size:14px;color:var(--muted);cursor:pointer}
+.pg-gate label.pg-remember{display:flex;align-items:center;gap:8px;min-height:44px;margin:14px 0 18px;font-size:14px;color:var(--muted);cursor:pointer}
 .pg-gate label.pg-remember input{width:18px;height:18px;margin:0;accent-color:var(--accent-text)}
 .pg-gate .pg-btn{width:100%}
 .pg-gate .pg-err{margin:0 0 14px;color:var(--bad);font-size:14px;text-align:center}
