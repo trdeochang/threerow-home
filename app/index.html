@@ -4,34 +4,54 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>三行腦</title>
-<!-- 2026-09-23 Claude：「加入主畫面」用的入口頁。iOS／Android 都拿這頁的 icon；點開後立刻轉到三行腦正式網址（同一個瀏覽器，登入狀態共用）。
-     不用 apple-mobile-web-app-capable、manifest display 用 browser：刻意讓它在一般瀏覽器開，Google 登入才不會卡在獨立容器。 -->
+<!-- 2026-09-23 Claude：「加入主畫面」用的三行腦入口頁（不是業主專頁功能）。
+     第一次直接開 /app/：顯示說明與「開啟三行腦」鈕，同時把網址換成 /app/?go=1，這樣按「分享 → 加入主畫面」時捷徑存的就是 ?go=1，
+     捷徑的名稱與 icon 來自這頁（apple-touch-icon／manifest）。
+     之後從主畫面點開（/app/?go=1）：立刻跳到三行腦正式網址，用同一個瀏覽器，Google 登入共用。
+     不設 apple-mobile-web-app-capable、manifest display 用 browser：刻意在一般瀏覽器開，登入才不會卡在獨立容器。
+     三行腦正式網址若更換，改下面 GAS_URL 一處。 -->
 <link rel="manifest" href="/app/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/brain-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/brain-192.png">
 <link rel="icon" type="image/png" sizes="64x64" href="/assets/icons/brain-64.png">
 <meta name="theme-color" content="#29373d">
 <meta name="robots" content="noindex">
-<meta http-equiv="refresh" content="0; url=https://script.google.com/a/macros/threerow.com/s/AKfycbywz8Aw-MNucdizEALFThAmbSjRyKPBta6HKpNsm2lDvKkoEc_RbRbK5ejdqcMbqKnP/exec">
 <style>
   :root{color-scheme:light dark}
   body{margin:0;min-height:100dvh;display:grid;place-items:center;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;background:#faf9f5;color:#29373d}
   @media (prefers-color-scheme:dark){body{background:#1f2629;color:#e6e9e7}}
-  main{text-align:center;padding:24px}
+  main{text-align:center;padding:24px;max-width:360px}
   img{width:96px;height:96px;border-radius:22px}
-  p{margin:16px 0 8px;font-size:15px}
-  a{color:inherit}
+  h1{font-size:22px;margin:16px 0 4px}
+  p{margin:8px 0;font-size:15px;line-height:1.7}
+  .go{display:inline-block;margin:16px 0 8px;padding:14px 28px;border-radius:12px;background:#29373d;color:#fff;text-decoration:none;font-size:16px;font-weight:600}
+  .how{margin-top:20px;padding:14px 16px;border-radius:12px;background:rgba(41,55,61,.06);text-align:left;font-size:14px}
+  @media (prefers-color-scheme:dark){.how{background:rgba(255,255,255,.08)}}
+  .how b{display:block;margin-bottom:4px}
+  .redirect main>*:not(.hint){display:none}
+  .hint{display:none}.redirect .hint{display:block}
 </style>
+<script>
+  var GAS_URL='https://script.google.com/a/macros/threerow.com/s/AKfycbywz8Aw-MNucdizEALFThAmbSjRyKPBta6HKpNsm2lDvKkoEc_RbRbK5ejdqcMbqKnP/exec';
+  var go=/[?&]go=1(&|$)/.test(location.search);
+  if(go){document.documentElement.className='redirect';location.replace(GAS_URL);}
+  else{try{history.replaceState(null,'','/app/?go=1');}catch(e){}}
+</script>
 </head>
 <body>
 <main>
   <img src="/assets/icons/brain-192.png" alt="">
-  <p>正在開啟三行腦…</p>
-  <a id="go" href="https://script.google.com/a/macros/threerow.com/s/AKfycbywz8Aw-MNucdizEALFThAmbSjRyKPBta6HKpNsm2lDvKkoEc_RbRbK5ejdqcMbqKnP/exec">沒有自動跳轉請點這裡</a>
+  <p class="hint">正在開啟三行腦…</p>
+  <h1>三行腦</h1>
+  <p>三行室內設計工作室內部系統入口。</p>
+  <a class="go" id="go" href="https://script.google.com/a/macros/threerow.com/s/AKfycbywz8Aw-MNucdizEALFThAmbSjRyKPBta6HKpNsm2lDvKkoEc_RbRbK5ejdqcMbqKnP/exec">開啟三行腦</a>
+  <div class="how">
+    <b>加到手機主畫面（只要做一次）</b>
+    iPhone：Safari 或 Chrome 底下「分享」→「加入主畫面」→ 新增。<br>
+    Android：Chrome 右上「⋮」→「加到主畫面」→ 新增。<br>
+    之後點主畫面的腦 icon，就直接進三行腦。
+  </div>
 </main>
-<script>
-  // meta refresh 已會跳；這裡只是保險（有些瀏覽器對 meta refresh 0 秒會延遲）。
-  setTimeout(function(){ location.replace(document.getElementById('go').href); }, 150);
-</script>
+<noscript><p>請點上方「開啟三行腦」。</p></noscript>
 </body>
 </html>
