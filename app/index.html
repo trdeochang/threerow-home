@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>三行腦</title>
+<!-- 2026-09-23 Claude：「加入主畫面」用的入口頁。iOS／Android 都拿這頁的 icon；點開後立刻轉到三行腦正式網址（同一個瀏覽器，登入狀態共用）。
+     不用 apple-mobile-web-app-capable、manifest display 用 browser：刻意讓它在一般瀏覽器開，Google 登入才不會卡在獨立容器。 -->
+<link rel="manifest" href="/app/manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/brain-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/brain-192.png">
+<link rel="icon" type="image/png" sizes="64x64" href="/assets/icons/brain-64.png">
+<meta name="theme-color" content="#29373d">
+<meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="0; url=https://script.google.com/a/macros/threerow.com/s/AKfycbywz8Aw-MNucdizEALFThAmbSjRyKPBta6HKpNsm2lDvKkoEc_RbRbK5ejdqcMbqKnP/exec">
+<style>
+  :root{color-scheme:light dark}
+  body{margin:0;min-height:100dvh;display:grid;place-items:center;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;background:#faf9f5;color:#29373d}
+  @media (prefers-color-scheme:dark){body{background:#1f2629;color:#e6e9e7}}
+  main{text-align:center;padding:24px}
+  img{width:96px;height:96px;border-radius:22px}
+  p{margin:16px 0 8px;font-size:15px}
+  a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+  <img src="/assets/icons/brain-192.png" alt="">
+  <p>正在開啟三行腦…</p>
+  <a id="go" href="https://script.google.com/a/macros/threerow.com/s/AKfycbywz8Aw-MNucdizEALFThAmbSjRyKPBta6HKpNsm2lDvKkoEc_RbRbK5ejdqcMbqKnP/exec">沒有自動跳轉請點這裡</a>
+</main>
+<script>
+  // meta refresh 已會跳；這裡只是保險（有些瀏覽器對 meta refresh 0 秒會延遲）。
+  setTimeout(function(){ location.replace(document.getElementById('go').href); }, 150);
+</script>
+</body>
+</html>

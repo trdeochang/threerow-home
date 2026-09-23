@@ -1,0 +1,14 @@
+{
+  "name": "三行腦",
+  "short_name": "三行腦",
+  "description": "三行室內設計工作室內部系統入口",
+  "start_url": "/app/",
+  "scope": "/app/",
+  "display": "browser",
+  "background_color": "#faf9f5",
+  "theme_color": "#29373d",
+  "icons": [
+    { "src": "/assets/icons/brain-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icons/brain-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
