@@ -20,7 +20,7 @@
   };
   var NATIONAL_NOTE = { 2026: '人事行政總處 115 年辦公日曆表', 2027: '依 116 年新聞稿摘要推算，請核對' };
 
-  // 舊 Excel 的固定工項（順序照舊）；2026-09-21 Deo 決定拿掉「業主確認」列；階段驗收在最下，工作天數由程式算
+  // 舊 Excel 的固定工項（順序照舊）；2026-09-21 Deo 決定拿掉「業主確認」列；2026-09-30 Deo 決定「階段驗收」列放在最上（保護工程之上）；工作天數由程式算
   var TEMPLATE_TRADES = ['保護工程', '拆除工程', '水電工程', '衛浴設備', '空調工程', '泥作工程', '鐵鋁工程', '木作工程', '漆作工程', '廚具工程', '系統工程', '玻璃工程', '地板工程', '其他工程', '清潔工程', '窗簾工程'];
   var TEMPLATE_CHECKLIST = ['管委會裝修申請', '鋁鐵工程', '冷氣空調', '保全工程', '瓦斯工程', '視聽工程', '廚具工程'];
   var TEMPLATE_CHECK_NOTE = '由業主自行發包之工程，需於開工前完成使用形式、顏色、安裝位置及施作廠商之確認。';
@@ -113,10 +113,9 @@
   }
 
   function template(caseName, location, start) {
-    var rows = [];
-    TEMPLATE_TRADES.forEach(function (t, i) { rows.push({ key: 't' + (i + 1), kind: 'trade', label: t, segs: [], notes: [] }); });
-    rows.push({ key: 'review', kind: 'review', label: '階段驗收', segs: [], notes: [] });
-    return { v: 1, title: '工程進度預定表', caseName: caseName || '', location: location || '', start: monthStart(start), pages: 1, paper: 'a4', workSat: true, useNational: true,
+    var rows = [{ key: 'review', kind: 'review', label: '階段驗收', segs: [], notes: [] }];   // 2026-09-30：階段驗收在最上
+    TEMPLATE_TRADES.forEach(function (t, i) { rows.push({ key: 't' + (i + 1), kind: 'trade', label: t, segs: [], notes: [], skip: [] }); });
+    return { v: 1, title: '工程進度預定表', caseName: caseName || '', location: location || '', start: monthStart(start), pages: 1, paper: 'a4', workSat: true, useNational: true, showDays: true,
       checklist: TEMPLATE_CHECKLIST.map(function (t) { return { t: t, on: false }; }), checkNote: TEMPLATE_CHECK_NOTE, note: TEMPLATE_NOTE, holidays: [], rows: rows };
   }
 
@@ -132,6 +131,7 @@
     if (input.rows.length > LIMITS.rows) throw new Error('工項列超過 ' + LIMITS.rows + ' 列');
     var out = { v: 1, title: str(input.title || '工程進度預定表', 30), caseName: str(input.caseName, 60), location: str(input.location, 120), start: monthStart(input.start),
       pages: Math.min(LIMITS.pages, Math.max(1, Math.floor(+input.pages || 1))), paper: PAPERS.indexOf(input.paper) >= 0 ? input.paper : 'a4', workSat: input.workSat !== false, useNational: input.useNational !== false,
+      showDays: input.showDays !== false /* 2026-10-02 Deo：每案可隱藏工作天數（工作天數列、格內編號、各列天數、表頭共幾個工作天）；舊資料沒這欄＝顯示 */,
       checklist: [], checkNote: str(input.checkNote, LIMITS.text), note: str(input.note, LIMITS.text), holidays: [], rows: [] };
     (Array.isArray(input.checklist) ? input.checklist : []).slice(0, LIMITS.checklist).forEach(function (c) { var t = str(c && c.t, LIMITS.noteText); if (t) out.checklist.push({ t: t, on: !!(c && c.on) }); });
     (Array.isArray(input.holidays) ? input.holidays : []).slice(0, LIMITS.holidays).forEach(function (h) { var s = h && (h.start || h.s), e = h && (h.end || h.e) || s; if (!isIso(s) || !isIso(e) || !yearOk(s) || !yearOk(e)) return; if (e < s) { var t = s; s = e; e = t; } if (diffDays(s, e) > 120) return; out.holidays.push({ s: s, e: e, t: str(h.text || h.t || '休', LIMITS.noteText) }); });
@@ -143,15 +143,18 @@
       if (kind === 'review' && reviews++) return;          // 階段驗收只能一列
       var key = str(r.key, 24).replace(/[^\w-]/g, '') || 'r' + i; while (keys[key]) key += 'x'; keys[key] = 1;
       var row = { key: key, kind: kind, label: str(r.label, LIMITS.label) || (kind === 'review' ? '階段驗收' : '工程項目'), segs: [], notes: [] };
+      /* 2026-09-30 #10：施工列的 ○ 提醒日（場勘等）——只是標記，不算工作天；只認合法日期、去重、排序 */
+      if (kind === 'trade') { var sk = {}; (Array.isArray(r.skip) ? r.skip : []).forEach(function (x) { if (isIso(x) && yearOk(x)) sk[x] = 1; }); row.skip = Object.keys(sk).sort().slice(0, LIMITS.segsPerRow); }
       var segs = (Array.isArray(r.segs) ? r.segs : []).filter(function (g) { return g && isIso(g.s) && isIso(g.e) && yearOk(g.s) && yearOk(g.e) && Math.abs(diffDays(g.s, g.e)) <= 400; });
       if (kind === 'trade') row.segs = normalizeSegs(segs).slice(0, LIMITS.segsPerRow);
-      else row.segs = segs.map(function (g) { return { id: g.id || newId(), s: g.s, e: g.s }; }).filter(function (g, i, a) { return a.findIndex(function (x) { return x.s === g.s; }) === i; }).sort(function (a, b) { return cmp(a.s, b.s); }).slice(0, LIMITS.segsPerRow);   // 驗收列只有單日標記
+      else row.segs = segs.map(function (g) { return { id: g.id || newId(), s: g.s, e: g.s, k: g.k === 'p' ? 'p' : 'r' }; }) /* 2026-09-30：k＝r 驗收日（黃◆）／p 收款日（紅◆） */.filter(function (g, i, a) { return a.findIndex(function (x) { return x.s === g.s; }) === i; }).sort(function (a, b) { return cmp(a.s, b.s); }).slice(0, LIMITS.segsPerRow);   // 驗收列只有單日標記
       var seen = {};
       (Array.isArray(r.notes) ? r.notes : []).forEach(function (t) { if (!t || !isIso(t.d) || !yearOk(t.d) || seen[t.d]) return; var text = str(t.t, LIMITS.noteText); if (!text) return; seen[t.d] = 1; row.notes.push({ id: t.id || newId(), d: t.d, t: text }); });
       row.notes.sort(function (a, b) { return cmp(a.d, b.d); }); row.notes = row.notes.slice(0, LIMITS.notesPerRow);
       out.rows.push(row);
     });
     if (!out.rows.some(function (r) { return r.kind === 'trade'; })) throw new Error('至少要有一列工程項目');
+    var ri = out.rows.findIndex(function (r) { return r.kind === 'review'; }); if (ri > 0) out.rows.unshift(out.rows.splice(ri, 1)[0]);   // 2026-09-30：舊資料的階段驗收列也一律搬到最上
     var json = JSON.stringify(out); if (json.length > LIMITS.bytes) throw new Error('進度表資料過大（' + json.length + ' 字），請精簡註記');
     return out;
   }
@@ -160,7 +163,8 @@
   function chunk(s, size) { size = size || 2000; var out = []; for (var i = 0; i < s.length; i += size) out.push(s.slice(i, i + size)); return out; }
   function join(parts) { return (parts || []).join(''); }
 
-  var api = { WEEK: WEEK, LIMITS: LIMITS, PAPERS: PAPERS, NATIONAL: NATIONAL, NATIONAL_NOTE: NATIONAL_NOTE, TEMPLATE_TRADES: TEMPLATE_TRADES,
+  var MARK_KINDS = { r: '驗收日', p: '收款日' };   // 2026-09-30：階段驗收列的兩種標記
+  var api = { WEEK: WEEK, LIMITS: LIMITS, PAPERS: PAPERS, MARK_KINDS: MARK_KINDS, NATIONAL: NATIONAL, NATIONAL_NOTE: NATIONAL_NOTE, TEMPLATE_TRADES: TEMPLATE_TRADES,
     isIso: isIso, addDays: addDays, diffDays: diffDays, dow: dow, weekLabel: weekLabel, monthOf: monthOf, dayOf: dayOf, yearOf: yearOf, newId: newId,
     monthStart: monthStart, monthEnd: monthEnd, daysInMonth: daysInMonth, addMonths: addMonths, monthsBetween: monthsBetween,
     nationalHolidays: nationalHolidays, holidayMap: holidayMap, isWorkday: isWorkday, dayKind: dayKind,
