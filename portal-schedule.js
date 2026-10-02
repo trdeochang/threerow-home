@@ -20,7 +20,7 @@
 
     // 摘要與開工前應辦事項（業主要看的）
     var top = node('div', 'pg-sched-sum');
-    if (sum.start) { var s1 = node('span'); s1.append('開工 ', node('b', null, slash(sum.start)), '　預定完工 ', node('b', null, slash(sum.end))); top.append(s1); var s2 = node('span'); s2.append('共 ', node('b', null, String(sum.workdays)), ' 個工作天（', String(sum.calendarDays), ' 日曆天）'); top.append(s2); }
+    if (sum.start) { var s1 = node('span'); s1.append('開工 ', node('b', null, slash(sum.start)), '　預定完工 ', node('b', null, slash(sum.end))); top.append(s1); if (d.showDays !== false) { var s2 = node('span'); s2.append('共 ', node('b', null, String(sum.workdays)), ' 個工作天（', String(sum.calendarDays), ' 日曆天）'); top.append(s2); } }   // 2026-10-02：三行腦那邊隱藏工作天數時，業主也看不到
     else top.append(node('span', null, '尚未排定工期'));
     if (sched.updatedAt) top.append(node('span', null, '更新 ' + fmtTime(sched.updatedAt)));
     container.append(top);
@@ -84,6 +84,7 @@
     });
     var ordered = d.rows.slice().sort(function (a, b) { return (a.kind === 'review' ? 0 : 1) - (b.kind === 'review' ? 0 : 1); });   // 2026-09-30：階段驗收列在最上（舊資料也一樣）
     ordered.forEach(function (row, ri) { renderRow(d, g, row, ri, dates, hmap, today, mark); });
+    if (d.showDays === false) return g;   // 2026-10-02：隱藏工作天數＝整列不畫
     var tl = node('div', 'sc-l sc-bar-l'); tl.dataset.kind = 'total'; tl.append(node('span', 'sc-name', '工作天數'), node('span', 'sc-days', sum.workdays ? '共 ' + sum.workdays + ' 天' : '')); g.append(tl);
     var trow = node('div', 'sc-row'); trow.dataset.kind = 'total';
     dates.forEach(function (iso) { var k = C.dayKind(iso, hmap), c = node('div', 'sc-c sc-total', counter[iso] ? String(counter[iso]) : ''); if (k !== 'week') c.dataset.kind = k; if (counter[iso]) c.dataset.on = ''; if (iso === today) c.dataset.today = ''; trow.append(mark(c, iso)); });
@@ -96,16 +97,16 @@
     if (row.kind !== 'trade') (row.segs || []).forEach(function (s) { marks[s.s] = s.k === 'p' ? 'p' : 'r'; });   // 2026-09-30：r 驗收日／p 收款日
     var skips = {}; (row.skip || []).forEach(function (x) { skips[x] = 1; });   // 2026-09-30 #10：○ 提醒日（不算工作天）
     var segs = C.normalizeSegs(row.segs), notes = {}; (row.notes || []).forEach(function (n) { notes[n.d] = n; });
-    var total = row.kind === 'trade' ? C.rowWorkdays(row, hmap, d.workSat) : (row.segs || []).length;
+    var total = row.kind === 'trade' ? C.rowWorkdays(row, hmap, d.workSat) : (row.segs || []).length, showDays = d.showDays !== false;   // 2026-10-02：隱藏時施工列不顯示「N 天」與格內編號
     var l = node('div', 'sc-l sc-bar-l'); l.dataset.kind = row.kind;
     var name = node('span', 'sc-name', row.label); name.title = row.label;
-    l.append(name, node('span', 'sc-days', total ? total + (row.kind === 'trade' ? ' 天' : ' 次') : '')); g.append(l);
+    l.append(name, node('span', 'sc-days', total && (showDays || row.kind !== 'trade') ? total + (row.kind === 'trade' ? ' 天' : ' 次') : '')); g.append(l);
     var barRow = node('div', 'sc-row'); barRow.dataset.kind = row.kind;
     dates.forEach(function (iso) {
       var k = C.dayKind(iso, hmap), c = node('div', 'sc-c'); c.dataset.d = iso; if (k !== 'week') c.dataset.kind = k; if (iso === today) c.dataset.today = '';
       if (row.kind === 'trade') {
         var seg = segs.filter(function (s) { return s.s <= iso && iso <= s.e; })[0];
-        if (seg) { c.dataset.work = ''; c.textContent = nums[iso] ? String(nums[iso]) : ''; c.title = row.label + '　' + slash(seg.s) + ' – ' + slash(seg.e) + (nums[iso] ? '　第 ' + nums[iso] + ' 個工作天' : '　' + (hmap[iso] || '週日') + '，不算工作天'); }
+        if (seg) { c.dataset.work = ''; c.textContent = showDays && nums[iso] ? String(nums[iso]) : ''; c.title = row.label + '　' + slash(seg.s) + ' – ' + slash(seg.e) + (nums[iso] ? (showDays ? '　第 ' + nums[iso] + ' 個工作天' : '') : '　' + (hmap[iso] || '週日') + '，不算工作天'); }
         else if (skips[iso]) { c.dataset.skip = ''; c.textContent = '○'; c.title = row.label + '　' + slash(iso) + '　提醒／場勘（不算工作天）'; }
         else c.title = slash(iso) + '（' + C.weekLabel(iso) + '）' + (hmap[iso] ? '　' + hmap[iso] : '');
       } else if (marks[iso]) { c.dataset.work = ''; c.dataset.mark = marks[iso]; c.textContent = '◆'; c.title = row.label + '　' + slash(iso) + '　' + (marks[iso] === 'p' ? '收款日' : '驗收日'); }
@@ -125,7 +126,7 @@
 
   function buildLegend(d, photosByDay, y1, y2) {
     var lg = node('div', 'sc-legend');
-    [['var(--sc-work)', '施工（數字＝該工項第幾個工作天）'], ['var(--sc-sat)', '週六'], ['var(--sc-sun)', '週日'], ['var(--sc-hol)', '國定假日／工地休假'], ['var(--sc-review)', '◆ 驗收日'], ['var(--sc-pay)', '◆ 收款日'], ['skip', '○ 提醒／場勘（不算工作天）']].forEach(function (x) { var s = node('span'); var i = node('i'); if (x[0] === 'skip') i.className = 'sc-i-skip'; else i.style.background = x[0]; s.append(i, x[1]); lg.append(s); });   // 2026-09-30
+    [['var(--sc-work)', d.showDays !== false ? '施工（數字＝該工項第幾個工作天）' : '施工'], ['var(--sc-sat)', '週六'], ['var(--sc-sun)', '週日'], ['var(--sc-hol)', '國定假日／工地休假'], ['var(--sc-review)', '◆ 驗收日'], ['var(--sc-pay)', '◆ 收款日'], ['skip', '○ 提醒／場勘（不算工作天）']].forEach(function (x) { var s = node('span'); var i = node('i'); if (x[0] === 'skip') i.className = 'sc-i-skip'; else i.style.background = x[0]; s.append(i, x[1]); lg.append(s); });   // 2026-09-30
     if (Object.keys(photosByDay).length) { var ps = node('span'); ps.append(node('span', 'sc-dot sc-dot-legend'), ' 該日有施工照（點了看相簿）'); lg.append(ps); }
     var years = []; for (var y = y1; y <= (y2 || y1); y++) years.push(y);
     lg.append(node('span', 'sc-sum', d.useNational === false ? '未套用國定假日' : years.map(function (yy) { return C.NATIONAL_NOTE && C.NATIONAL_NOTE[yy] ? yy + ' 年假日依' + C.NATIONAL_NOTE[yy] : yy + ' 年無內建假日表'; }).join('；')));
